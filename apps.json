@@ -1,0 +1,38 @@
+{
+  "name": "kernl",
+  "identifier": "com.gavin.kernl.source",
+  "subtitle": "The official kernl source",
+  "description": "Install and update kernl with SideStore or AltStore.",
+  "iconURL": "https://raw.githubusercontent.com/00msingh0911-collab/kernl-source/main/icon.png",
+  "website": "https://github.com/00msingh0911-collab/kernl-source",
+  "tintColor": "#7C5CFF",
+  "apps": [
+    {
+      "name": "kernl",
+      "bundleIdentifier": "com.gavin.mymusic",
+      "developerName": "Gavin",
+      "subtitle": "Music player",
+      "localizedDescription": "kernl is a music streaming player with offline downloads, listening stats, car mode and background playback.",
+      "iconURL": "https://raw.githubusercontent.com/00msingh0911-collab/kernl-source/main/icon.png",
+      "tintColor": "#7C5CFF",
+      "category": "entertainment",
+      "screenshots": [],
+      "versions": [
+        {
+          "version": "1.0",
+          "buildVersion": "1",
+          "date": "2026-10-25T16:27:37Z",
+          "localizedDescription": "First release.",
+          "downloadURL": "https://github.com/00msingh0911-collab/kernl-source/releases/download/v1.0/kernl.ipa",
+          "size": 4515072,
+          "minOSVersion": "15.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": []
+}
