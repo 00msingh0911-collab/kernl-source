@@ -1,8 +1,14 @@
 name: Update SideStore source
 
+# Adds a new version to apps.json when either:
+#  - a GitHub Release with an .ipa attached is published, or
+#  - an .ipa is pushed into the ipa/ folder on main.
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
+    paths: ["ipa/**.ipa"]
   workflow_dispatch:
     inputs:
       tag:
@@ -19,8 +25,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 2
 
-      - name: Download IPA from release
+      - name: Get IPA from release
+        if: github.event_name != 'push'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name || inputs.tag }}
@@ -28,16 +36,30 @@ jobs:
           gh release view "$TAG" --json body --jq .body > notes.txt
           ASSET=$(gh release view "$TAG" --json assets --jq '[.assets[] | select(.name | endswith(".ipa"))][0].name')
           if [ -z "$ASSET" ]; then echo "No .ipa asset on release $TAG"; exit 1; fi
-          gh release download "$TAG" --pattern "$ASSET" --output app.ipa
+          gh release download "$TAG" --pattern "$ASSET" --output /tmp/app.ipa
+          echo "IPA=/tmp/app.ipa" >> "$GITHUB_ENV"
           echo "URL=https://github.com/${{ github.repository }}/releases/download/$TAG/$ASSET" >> "$GITHUB_ENV"
+          echo "LABEL=$TAG" >> "$GITHUB_ENV"
+
+      - name: Get IPA from push
+        if: github.event_name == 'push'
+        run: |
+          FILE=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD -- 'ipa/*.ipa' | tail -n1)
+          if [ -z "$FILE" ]; then echo "No new IPA in this push"; exit 0; fi
+          git log -1 --format=%b > notes.txt
+          echo "IPA=$FILE" >> "$GITHUB_ENV"
+          echo "URL=https://raw.githubusercontent.com/${{ github.repository }}/main/$FILE" >> "$GITHUB_ENV"
+          echo "LABEL=$FILE" >> "$GITHUB_ENV"
 
       - name: Update apps.json
-        run: python3 scripts/update_source.py app.ipa "$URL" notes.txt
+        if: env.IPA != ''
+        run: python3 scripts/update_source.py "$IPA" "$URL" notes.txt
 
       - name: Commit
+        if: env.IPA != ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add apps.json
-          git diff --cached --quiet || git commit -m "Add ${{ github.event.release.tag_name || inputs.tag }} to source"
+          git diff --cached --quiet || git commit -m "Add $LABEL to source"
           git push
