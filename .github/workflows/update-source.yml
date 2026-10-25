@@ -46,7 +46,7 @@ jobs:
         run: |
           FILE=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD -- 'ipa/*.ipa' | tail -n1)
           if [ -z "$FILE" ]; then echo "No new IPA in this push"; exit 0; fi
-          git log -1 --format=%b > notes.txt
+          git log -1 --format=%b | grep -vE '^[A-Za-z-]+: ' > notes.txt || true
           echo "IPA=$FILE" >> "$GITHUB_ENV"
           echo "URL=https://raw.githubusercontent.com/${{ github.repository }}/main/$FILE" >> "$GITHUB_ENV"
           echo "LABEL=$FILE" >> "$GITHUB_ENV"
